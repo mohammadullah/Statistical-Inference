@@ -1,0 +1,247 @@
+---
+title: The Effect of Vitamin C at Different Dose and Delivery Methods on Guinea Pig
+  Tooth Growth
+author: "Mohammad Ullah"
+date: "September 30, 2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Synopsis:
+
+In this project, we have performed experiment on the Tooth growth of Guinea pig. The main goal of this rubric is to understand the effect of two different delivery methods and/or three doses of Vitamin C on tooth growth. Beside this primary focus, we have also done some preliminary exploratory data analysis and some basic summary of the data.
+
+# Given Directions and requirements of the project:
+
+ In this project, we have to satisfy the following four requirements:
+
+1. Load the Tooth Growth data and perform some basic exploratory data analyses
+2. Provide a basic summary of the data.
+3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+4. State our conclusions and the assumptions needed for our conclusions.
+
+# Results:
+
+```{r code1, echo=FALSE}
+library(datasets)
+tooth <- ToothGrowth
+```
+
+## Summary of the tooth growth database:
+
+```{r code2, echo=FALSE}
+str(tooth)
+summary(tooth)
+```
+
+From the above summary, we can see that there are 60 observations and 3 variables. The variables are
+
+1. len = Length of the tooth
+2. supp = Dose delivery method (There are two methods, orange juice (OJ) and ascorbic acid (VC))
+3. dose = Amount of vitamin C doses (There are three doses, 0.5, 1 and 2)
+
+Supp is a factor variable and other two are numeric. The summary also gives the maximum, minimum, mean, quantile and other information about the variables of the dataset.
+
+## Basic exploratory data analysis
+
+
+```{r code3, fig.width=11,fig.height=5, echo=FALSE}
+
+par(mfrow = c(1,2))
+
+boxplot(len ~ dose, data = tooth, 
+        main = "Fig 1(a): Tooth Growth vs. Dose",
+        xlab = "Amount of dose", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,tooth$dose,mean)
+points(means, col = "red", pch = 18, cex = 2)
+
+boxplot(len ~ supp, data = tooth, 
+        main = "Fig 1(b): Tooth Growth vs. Delivery Method",
+        xlab = "Delivery Methods", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,tooth$supp,mean)
+points(means, col = "red", pch = 18, cex = 2)
+
+```
+
+Figure 1(a), shows that with increasing amount of dose the tooth also grows linearly. The range of variation is relatively lower at high dose (2). The effect of delivery method is not that straight forward from figure 1(b). In general, we can say that Orange Juice (OJ) is more effective than VC method although the length varies a lot in VC delivery method.
+
+```{r code4, fig.width=10,fig.height=5, echo=FALSE}
+boxplot(len ~ supp + dose, data = tooth, 
+        main = "Fig 2: Tooth Growth at different Dose and Delivery Method",
+        xlab = "Amount of (dose + delivery method)", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,list(tooth$supp, tooth$dose),mean)
+means <- as.vector(means)
+points(means, col = "red", pch = 18, cex = 2)
+
+```
+
+Figure 2 shows the tooth growth at different doses with corresponding delivery methods. The growth is maximum at high dose (2) regardless the delivery method. In all three doses, delivery using orange juice shows higher tooth growth. Delivery method VC and dose 0.5 gives the shortest tooth length. The red point in all the figures show the average tooth length. 
+
+## Compare tooth growth using confidence intervals and/or hypothesis tests
+
+The assumption for the t-test that means are equal. There will be no effect on tooth growth if means are euqal between different delivery methods and amount of doses.  
+
+### t-test of two sets of data based on delivery method 
+
+```{r code5, echo=FALSE}
+test1 <- t.test(len ~ supp, data = tooth)
+print("95% confidence interval of difference in mean based on delivery methods")
+test1$conf.int[1:2]
+print(paste0("P-value : ", test1$p.value))
+```
+
+In the above t-test, the 95% confidence interval contains zero (0). Thus, there is no effect of delivery method on tooth growth.
+
+### t-test based on dose
+
+Compare between dose 0.5 and 1 
+
+```{r code6, echo=FALSE}
+low_mid <- subset(tooth, dose == 0.5 | dose == 1)
+test2 <- t.test(len ~ dose, data = low_mid)
+print("95% confidence interval of difference in mean between dose 0.5 and 1")
+test2$conf.int[1:2]
+print(paste0("P-value : ", test2$p.value))
+```
+
+Compare between dose 1 and 2
+
+```{r code7 , echo=FALSE}
+mid_hi <- subset(tooth, dose == 1 | dose == 2)
+test3 <- t.test(len ~ dose, data = mid_hi)
+print("95% confidence interval of difference in mean between dose 1 and 2")
+test3$conf.int[1:2]
+print(paste0("P-value : ", test3$p.value))
+```
+
+Compare between dose 0.5 and 2
+
+```{r code8, echo=FALSE}
+low_hi <- subset(tooth, dose == 0.5 | dose == 2)
+test4 <- t.test(len ~ dose, data = low_hi)
+print("95% confidence interval of difference in mean between dose 0.5 and 2")
+test4$conf.int[1:2]
+print(paste0("P-value : ", test4$p.value))
+```
+
+The above three t-tests compare the tooth growth based on different dose levels. In all three cases, the 95% confidence intervals are below zero and p-values are <0.05. So, we reject the null hypothesis that the mean is equal and the 95% confidence interval of the difference in mean tooth length is between the calculated values.
+
+We can also do the t-test on different dose based on delivery method. Here, we will only look at dose 2, as from the figure 2, there should not be significant effect of delivery method at dose 2.
+
+```{r code9, echo=FALSE}
+dose_2 <- subset(tooth, dose == 2) 
+test5 <- t.test(len ~ supp, data = dose_2)
+print("95% confidence interval of difference in mean between delivery methods of dose 2")
+test5$conf.int[1:2]
+print(paste0("P-value : ", test5$p.value))
+```
+
+Here, 95% confidence interval is between -3.79807 and 3.63807 and p-values is 0.9639. Hence, the confidence interval contains zero (0) also the p-value is > 0.05. So, there is no effect of delivery method and we can not reject the null hypothesis that means are equal.
+
+Finally, we can say that tooth growth increases with higher dose. The delivery method also has some effect at low and medium doses. The delivery by orange juice seems to be more effective at low (0.5) and medium (1) dose.  
+
+# Appendix:
+
+## Codes are given in this section
+
+```{r code10, eval=FALSE}
+library(datasets)
+tooth <- ToothGrowth
+```
+
+## Summary of the tooth growth database:
+
+```{r code11, eval=FALSE}
+str(tooth)
+summary(tooth)
+```
+
+## Basic exploratory data analysis
+
+```{r code12, fig.width=14,fig.height=7, eval=FALSE}
+
+par(mfrow = c(1,2))
+
+boxplot(len ~ dose, data = tooth, 
+        main = "Fig 1(a): Tooth Growth vs. Dose",
+        xlab = "Amount of dose", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,tooth$dose,mean)
+points(means, col = "red", pch = 18, cex = 2)
+
+boxplot(len ~ supp, data = tooth, 
+        main = "Fig 1(b): Tooth Growth vs. Delivery Method",
+        xlab = "Delivery Methods", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,tooth$supp,mean)
+points(means, col = "red", pch = 18, cex = 2)
+
+```
+
+```{r code13, eval=FALSE}
+boxplot(len ~ supp + dose, data = tooth, 
+        main = "Fig 2: Tooth Growth at different Dose and Delivery Method",
+        xlab = "Amount of (dose + delivery method)", 
+        ylab = "Tooth length")
+means <- tapply(tooth$len,list(tooth$supp, tooth$dose),mean)
+means <- as.vector(means)
+points(means, col = "red", pch = 18, cex = 2)
+
+```
+
+## Compare tooth growth using confidence intervals and/or hypothesis tests
+
+### t-test of two sets of data based on delivery method 
+
+```{r code14, eval=FALSE}
+test1 <- t.test(len ~ supp, data = tooth)
+print("95% confidence interval of difference in mean based on delivery methods")
+test1$conf.int[1:2]
+print(paste0("P-value : ", test1$p.value))
+```
+
+### t-test based on dose
+
+#### Compare between dose 0.5 and 1 
+
+```{r code15, eval=FALSE}
+low_mid <- subset(tooth, dose == 0.5 | dose == 1)
+test2 <- t.test(len ~ dose, data = low_mid)
+print("95% confidence interval of difference in mean between dose 0.5 and 1")
+test2$conf.int[1:2]
+print(paste0("P-value : ", test2$p.value))
+```
+
+#### Compare between dose 1 and 2
+
+```{r code16 , eval=FALSE}
+mid_hi <- subset(tooth, dose == 1 | dose == 2)
+test3 <- t.test(len ~ dose, data = mid_hi)
+print("95% confidence interval of difference in mean between dose 1 and 2")
+test3$conf.int[1:2]
+print(paste0("P-value : ", test3$p.value))
+```
+
+#### Compare between dose 0.5 and 2
+
+```{r code17, eval=FALSE}
+low_hi <- subset(tooth, dose == 0.5 | dose == 2)
+test4 <- t.test(len ~ dose, data = low_hi)
+print("95% confidence interval of difference in mean between dose 0.5 and 2")
+test4$conf.int[1:2]
+print(paste0("P-value : ", test4$p.value))
+```
+
+#### Compare between delivery methods in dose 2
+
+```{r code18, eval=FALSE}
+dose_2 <- subset(tooth, dose == 2) 
+test5 <- t.test(len ~ supp, data = dose_2)
+print("95% confidence interval of difference in mean between delivery methods of dose 2")
+test5$conf.int[1:2]
+print(paste0("P-value : ", test5$p.value))
+```
